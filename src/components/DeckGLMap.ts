@@ -38,6 +38,7 @@ import type {
 import { fetchMilitaryBases, type MilitaryBaseCluster as ServerBaseCluster } from '@/services/military-bases';
 import type { AirportDelayAlert } from '@/services/aviation';
 import type { IranEvent } from '@/services/conflict';
+import type { RocketAlertMarker } from '@/services/rocket-alerts-map';
 import type { GpsJamHex } from '@/services/gps-interference';
 import type { DisplacementFlow } from '@/services/displacement';
 import type { Earthquake } from '@/services/earthquakes';
@@ -280,6 +281,7 @@ export class DeckGLMap {
   private outages: InternetOutage[] = [];
   private cyberThreats: CyberThreat[] = [];
   private iranEvents: IranEvent[] = [];
+  private rocketAlerts: RocketAlertMarker[] = [];
   private aisDisruptions: AisDisruptionEvent[] = [];
   private aisDensity: AisDensityZone[] = [];
   private cableAdvisories: CableAdvisory[] = [];
@@ -1112,6 +1114,12 @@ export class DeckGLMap {
       layers.push(this.createGhostLayer('iran-events-layer', this.iranEvents, d => [d.longitude, d.latitude], { radiusMinPixels: 12 }));
     }
 
+    // Rocket alerts layer (OREF)
+    if (mapLayers.rocketAlerts && this.rocketAlerts.length > 0) {
+      layers.push(this.createRocketAlertsLayer());
+      layers.push(this.createRocketAlertsPulseLayer());
+    }
+
     // Weather alerts layer
     if (mapLayers.weather && filteredWeatherAlerts.length > 0) {
       layers.push(this.createWeatherLayer(filteredWeatherAlerts));
@@ -1690,6 +1698,41 @@ export class DeckGLMap {
       radiusMinPixels: 4,
       radiusMaxPixels: 16,
       pickable: true,
+    });
+  }
+
+  private createRocketAlertsLayer(): ScatterplotLayer {
+    return new ScatterplotLayer({
+      id: 'rocket-alerts-layer',
+      data: this.rocketAlerts,
+      getPosition: (d: RocketAlertMarker) => [d.lon, d.lat],
+      getRadius: (d: RocketAlertMarker) => d.isActive ? 8000 : 5000,
+      getFillColor: (d: RocketAlertMarker) => {
+        if (d.isActive) return [255, 0, 0, 240] as [number, number, number, number];
+        return [255, 80, 0, 160] as [number, number, number, number];
+      },
+      radiusMinPixels: 6,
+      radiusMaxPixels: 20,
+      pickable: true,
+    });
+  }
+
+  private createRocketAlertsPulseLayer(): ScatterplotLayer {
+    const now = Date.now();
+    // Pulsing effect for active alerts
+    const activeAlerts = this.rocketAlerts.filter(a => a.isActive);
+    const phase = (now % 2000) / 2000; // 2-second cycle
+    const pulseScale = 1 + Math.sin(phase * Math.PI * 2) * 0.5;
+
+    return new ScatterplotLayer({
+      id: 'rocket-alerts-pulse-layer',
+      data: activeAlerts,
+      getPosition: (d: RocketAlertMarker) => [d.lon, d.lat],
+      getRadius: () => 15000 * pulseScale,
+      getFillColor: [255, 0, 0, 60] as [number, number, number, number],
+      radiusMinPixels: 12,
+      radiusMaxPixels: 40,
+      pickable: false,
     });
   }
 
@@ -2835,6 +2878,8 @@ export class DeckGLMap {
         return { html: `<div class="deckgl-tooltip"><strong>${t('popups.cyberThreat.title')}</strong><br/>${text(obj.severity || t('components.deckgl.tooltip.medium'))} · ${text(obj.country || t('popups.unknown'))}</div>` };
       case 'iran-events-layer':
         return { html: `<div class="deckgl-tooltip"><strong>${t('components.deckgl.layers.iranAttacks')}: ${text(obj.category || '')}</strong><br/>${text((obj.title || '').slice(0, 80))}</div>` };
+      case 'rocket-alerts-layer':
+        return { html: `<div class="deckgl-tooltip"><strong>&#128640; ${text(obj.alertType || 'Rocket Alert')}</strong><br/>${text(obj.locationName)}${obj.isActive ? '<br/><span style="color:#ff4444">ACTIVE</span>' : ''}</div>` };
       case 'news-locations-layer':
         return { html: `<div class="deckgl-tooltip"><strong>📰 ${t('components.deckgl.tooltip.news')}</strong><br/>${text(obj.title?.slice(0, 80) || '')}</div>` };
       case 'positive-events-layer': {
@@ -3061,6 +3106,7 @@ export class DeckGLMap {
       'outages-layer': 'outage',
       'cyber-threats-layer': 'cyberThreat',
       'iran-events-layer': 'iranEvent',
+      'rocket-alerts-layer': 'rocketAlert',
       'protests-layer': 'protest',
       'military-flights-layer': 'militaryFlight',
       'military-vessels-layer': 'militaryVessel',
@@ -3259,6 +3305,7 @@ export class DeckGLMap {
         ]
       : [
         { key: 'iranAttacks', label: t('components.deckgl.layers.iranAttacks'), icon: '&#127919;' },
+        { key: 'rocketAlerts', label: 'Rocket Alerts', icon: '&#128640;' },
         { key: 'hotspots', label: t('components.deckgl.layers.intelHotspots'), icon: '&#127919;' },
         { key: 'conflicts', label: t('components.deckgl.layers.conflictZones'), icon: '&#9876;' },
         { key: 'bases', label: t('components.deckgl.layers.militaryBases'), icon: '&#127963;' },
@@ -3912,6 +3959,11 @@ export class DeckGLMap {
 
   public setIranEvents(events: IranEvent[]): void {
     this.iranEvents = events;
+    this.render();
+  }
+
+  public setRocketAlerts(alerts: RocketAlertMarker[]): void {
+    this.rocketAlerts = alerts;
     this.render();
   }
 

@@ -75,6 +75,7 @@ import { fetchClimateAnomalies } from '@/services/climate';
 import { fetchSecurityAdvisories } from '@/services/security-advisories';
 import { fetchTelegramFeed } from '@/services/telegram-intel';
 import { fetchOrefAlerts, startOrefPolling, stopOrefPolling, onOrefAlertsUpdate } from '@/services/oref-alerts';
+import { orefAlertsToMarkers } from '@/services/rocket-alerts-map';
 import { enrichEventsWithExposure } from '@/services/population-exposure';
 import { debounce, getCircuitBreakerCooldownInfo } from '@/utils';
 import { isFeatureAvailable, isFeatureEnabled } from '@/services/runtime-config';
@@ -420,6 +421,13 @@ export class DataLoaderManager implements AppModule {
         case 'iranAttacks':
           await this.loadIranEvents();
           break;
+        case 'rocketAlerts': {
+          const orefData = await fetchOrefAlerts();
+          const markers = orefAlertsToMarkers(orefData);
+          this.ctx.map?.setRocketAlerts(markers);
+          this.ctx.map?.setLayerReady('rocketAlerts', markers.length > 0);
+          break;
+        }
         case 'ucdpEvents':
         case 'displacement':
         case 'climate':
@@ -1362,7 +1370,7 @@ export class DataLoaderManager implements AppModule {
     // Telegram Intel
     tasks.push(this.loadTelegramIntel());
 
-    // OREF sirens
+    // OREF sirens + rocket alerts map layer
     tasks.push((async () => {
       try {
         const data = await fetchOrefAlerts();
@@ -1372,6 +1380,12 @@ export class DataLoaderManager implements AppModule {
         ingestOrefForCII(alertCount, historyCount24h);
         this.ctx.intelligenceCache.orefAlerts = { alertCount, historyCount24h };
         if (data.alerts?.length) dispatchOrefBreakingAlert(data.alerts);
+        // Rocket alerts on map
+        const rocketMarkers = orefAlertsToMarkers(data);
+        if (rocketMarkers.length > 0) {
+          this.ctx.map?.setRocketAlerts(rocketMarkers);
+          this.ctx.map?.setLayerReady('rocketAlerts', true);
+        }
         onOrefAlertsUpdate((update) => {
           (this.ctx.panels['oref-sirens'] as OrefSirensPanel)?.setData(update);
           const updAlerts = update.alerts?.length ?? 0;
@@ -1379,6 +1393,10 @@ export class DataLoaderManager implements AppModule {
           ingestOrefForCII(updAlerts, updHistory);
           this.ctx.intelligenceCache.orefAlerts = { alertCount: updAlerts, historyCount24h: updHistory };
           if (update.alerts?.length) dispatchOrefBreakingAlert(update.alerts);
+          // Update rocket alerts on map in real-time
+          const updatedMarkers = orefAlertsToMarkers(update);
+          this.ctx.map?.setRocketAlerts(updatedMarkers);
+          this.ctx.map?.setLayerReady('rocketAlerts', updatedMarkers.length > 0);
         });
         startOrefPolling();
       } catch (error) {

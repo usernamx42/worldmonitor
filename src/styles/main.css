@@ -4537,6 +4537,31 @@ body.playback-mode .status-dot {
   transform: translate(-50%, -50%) scale(calc(var(--marker-scale, 1) * 1.3));
 }
 
+/* Rocket alert markers (OREF) */
+.rocket-alert-marker {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale, 1));
+  transform-origin: center;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.7);
+  border: 2px solid rgba(255, 60, 60, 0.9);
+  box-shadow: 0 0 6px rgba(255, 0, 0, 0.5);
+  z-index: 56;
+  transition: opacity 0.2s ease;
+}
+
+.rocket-alert-marker.active {
+  background: rgba(255, 0, 0, 0.9);
+  border-color: #ff0000;
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.8), 0 0 32px rgba(255, 0, 0, 0.4);
+  animation: rocket-alert-pulse 1s ease-in-out infinite;
+}
+
+@keyframes rocket-alert-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--marker-scale, 1)); box-shadow: 0 0 16px rgba(255, 0, 0, 0.8); }
+  50% { transform: translate(-50%, -50%) scale(calc(var(--marker-scale, 1) * 1.4)); box-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 60px rgba(255, 0, 0, 0.5); }
+}
+
 /* Earthquake markers */
 .earthquake-marker {
   position: absolute;
@@ -6493,6 +6518,7 @@ a.prediction-link:hover {
 
 .map-wrapper[data-layer-hidden-bases="true"] .base-marker,
 .map-wrapper[data-layer-hidden-iranAttacks="true"] .iran-event-marker,
+.map-wrapper[data-layer-hidden-rocketAlerts="true"] .rocket-alert-marker,
 .map-wrapper[data-layer-hidden-nuclear="true"] .nuclear-marker,
 .map-wrapper[data-layer-hidden-natural="true"] .earthquake-marker,
 .map-wrapper[data-layer-hidden-natural="true"] .nat-event-marker,

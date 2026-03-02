@@ -361,6 +361,14 @@ export class MapContainer {
     }
   }
 
+  public setRocketAlerts(alerts: import('@/services/rocket-alerts-map').RocketAlertMarker[]): void {
+    if (this.useDeckGL) {
+      this.deckGLMap?.setRocketAlerts(alerts);
+    } else {
+      this.svgMap?.setRocketAlerts(alerts);
+    }
+  }
+
   public setNewsLocations(data: Array<{ lat: number; lon: number; title: string; threatLevel: string; timestamp?: Date }>): void {
     if (this.useDeckGL) {
       this.deckGLMap?.setNewsLocations(data);

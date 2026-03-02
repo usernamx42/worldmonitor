@@ -139,6 +139,7 @@ export class MapComponent {
   private techActivities: TechHubActivity[] = [];
   private geoActivities: GeoHubActivity[] = [];
   private iranEvents: IranEvent[] = [];
+  private rocketAlertMarkers: import('@/services/rocket-alerts-map').RocketAlertMarker[] = [];
   private news: NewsItem[] = [];
   private onTechHubClick?: (hub: TechHubActivity) => void;
   private onGeoHubClick?: (hub: GeoHubActivity) => void;
@@ -401,6 +402,7 @@ export class MapComponent {
       commodityHubs: 'components.deckgl.layers.commodityHubs',
       gulfInvestments: 'components.deckgl.layers.gulfInvestments',
       iranAttacks: 'components.deckgl.layers.iranAttacks',
+      rocketAlerts: 'components.deckgl.layers.iranAttacks',
       gpsJamming: 'components.deckgl.layers.gpsJamming',
     };
     const getLayerLabel = (layer: keyof MapLayers): string => {
@@ -1466,6 +1468,25 @@ export class MapComponent {
             y: e.clientY - rect.top,
           });
         });
+
+        this.overlays.appendChild(div);
+      });
+    }
+
+    // Rocket alerts (OREF) - red pulsing markers
+    if (this.state.layers.rocketAlerts && this.rocketAlertMarkers.length > 0) {
+      this.rocketAlertMarkers.forEach((alert) => {
+        const pos = projection([alert.lon, alert.lat]);
+        if (!pos || !Number.isFinite(pos[0]) || !Number.isFinite(pos[1])) return;
+
+        const size = alert.isActive ? 16 : 10;
+        const div = document.createElement('div');
+        div.className = `rocket-alert-marker${alert.isActive ? ' active' : ''}`;
+        div.style.left = `${pos[0]}px`;
+        div.style.top = `${pos[1]}px`;
+        div.style.width = `${size}px`;
+        div.style.height = `${size}px`;
+        div.title = `${alert.alertType} - ${alert.locationName}`;
 
         this.overlays.appendChild(div);
       });
@@ -3617,6 +3638,11 @@ export class MapComponent {
 
   public setIranEvents(events: IranEvent[]): void {
     this.iranEvents = events;
+    this.render();
+  }
+
+  public setRocketAlerts(alerts: import('@/services/rocket-alerts-map').RocketAlertMarker[]): void {
+    this.rocketAlertMarkers = alerts;
     this.render();
   }
 

@@ -551,6 +551,8 @@ export interface MapLayers {
   iranAttacks: boolean;
   // GPS/GNSS interference layer
   gpsJamming: boolean;
+  // Rocket alerts layer (OREF / Pikud HaOref)
+  rocketAlerts: boolean;
   // Overlay layers
   dayNight: boolean;
 }
