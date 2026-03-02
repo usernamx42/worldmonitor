@@ -1,0 +1,11 @@
+api/**/*.test.mjs
+api/**/*.test.mts
+api/**/*.test.js
+api/**/*.test.ts
+deploy/
+tests/
+e2e/
+docs/
+.planning/
+.github/
+scripts/
