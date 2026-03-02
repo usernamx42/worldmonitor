@@ -2995,7 +2995,7 @@ export class MapComponent {
     // Region-specific zoom and pan settings
     // Pan: +x = west, -x = east, +y = north, -y = south
     const viewSettings: Record<MapView, { zoom: number; pan: { x: number; y: number } }> = {
-      global: { zoom: 1, pan: { x: 0, y: 0 } },
+      global: { zoom: 3.5, pan: { x: -100, y: 50 } },
       america: { zoom: 1.8, pan: { x: 180, y: 30 } },
       mena: { zoom: 3.5, pan: { x: -100, y: 50 } },
       eu: { zoom: 2.4, pan: { x: -30, y: 100 } },
