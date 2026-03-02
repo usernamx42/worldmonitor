@@ -957,6 +957,11 @@ canvas,
   background: var(--green-dim);
 }
 
+/* Mobile filter button - hidden on desktop */
+.mobile-filter-btn {
+  display: none !important;
+}
+
 /* Hidden by default — shown only inside 768px media query */
 .map-collapse-btn {
   display: none;
@@ -9092,9 +9097,35 @@ a.prediction-link:hover {
     display: none !important;
   }
 
-  /* Hide layer toggle buttons on mobile - use fixed layers */
+  /* Hide layer toggle buttons on mobile by default, show via filter button */
   .layer-toggles {
     display: none !important;
+  }
+  .layer-toggles.mobile-visible {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    max-width: 100%;
+    max-height: 50vh;
+    overflow-y: auto;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 8px;
+    flex-wrap: wrap;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile filter button - only visible on mobile */
+  .mobile-filter-btn {
+    display: flex !important;
+  }
+  .mobile-filter-btn.active {
+    color: var(--green) !important;
+    border-color: var(--green) !important;
   }
 
   /* Single-column panel layout on mobile */

@@ -206,6 +206,9 @@ export class PanelLayoutManager implements AppModule {
             </div>
             <span class="header-clock" id="headerClock"></span>
             <div style="display:flex;align-items:center;gap:2px">
+              <button class="map-pin-btn mobile-filter-btn" id="mobileFilterBtn" title="Map Layers">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </button>
               <button class="map-pin-btn" id="mapFullscreenBtn" title="Fullscreen">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
               </button>
@@ -255,6 +258,18 @@ export class PanelLayoutManager implements AppModule {
       localStorage.setItem('mobile-map-collapsed', String(isCollapsed));
       if (!isCollapsed) window.dispatchEvent(new Event('resize'));
     });
+
+    // Mobile filter button - toggles layer toggles visibility
+    const filterBtn = document.getElementById('mobileFilterBtn');
+    if (filterBtn) {
+      filterBtn.addEventListener('click', () => {
+        const layerToggles = mapSection.querySelector('.layer-toggles, .deckgl-layer-toggles') as HTMLElement;
+        if (layerToggles) {
+          const isVisible = layerToggles.classList.toggle('mobile-visible');
+          filterBtn.classList.toggle('active', isVisible);
+        }
+      });
+    }
   }
 
   renderCriticalBanner(postures: TheaterPostureSummary[]): void {
@@ -345,7 +360,7 @@ export class PanelLayoutManager implements AppModule {
 
     const mapContainer = document.getElementById('mapContainer') as HTMLElement;
     this.ctx.map = new MapContainer(mapContainer, {
-      zoom: this.ctx.isMobile ? 3.5 : 1.0,
+      zoom: this.ctx.isMobile ? 5.5 : 1.0,
       pan: { x: 0, y: 0 },
       view: 'global',
       layers: this.ctx.mapLayers,

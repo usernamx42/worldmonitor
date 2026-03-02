@@ -6,7 +6,6 @@ import { signalAggregator, type RegionalConvergence } from '@/services/signal-ag
 import { focalPointDetector } from '@/services/focal-point-detector';
 import { ingestNewsForCII } from '@/services/country-instability';
 import { getTheaterPostureSummaries } from '@/services/military-surge';
-import { isMobileDevice } from '@/utils';
 import { escapeHtml, sanitizeUrl } from '@/utils/sanitize';
 import { SITE_VARIANT } from '@/config';
 import { deletePersistentCache, getPersistentCache, setPersistentCache } from '@/services/persistent-cache';
@@ -37,13 +36,8 @@ export class InsightsPanel extends Panel {
       infoTooltip: t('components.insights.infoTooltip'),
     });
 
-    if (isMobileDevice()) {
-      this.hide();
-      this.isHidden = true;
-    }
-
     // Web-only: subscribe to AI flow changes so toggling providers re-runs analysis
-    if (!isDesktopRuntime() && !isMobileDevice()) {
+    if (!isDesktopRuntime()) {
       this.aiFlowUnsubscribe = subscribeAiFlowChange((changedKey) => {
         if (changedKey === 'mapNewsFlash') return;
         void this.onAiFlowChanged();
